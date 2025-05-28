@@ -202,8 +202,7 @@ foreach ($allLinks['data'] as $link) {
 $wioPayments = new WioPayments('your_api_key', [
     'base_url' => 'https://gw.wiopayments.com',
     'timeout' => 30,
-    'verify_ssl' => true,
-    'stripe_js_version' => 'v3'
+    'verify_ssl' => true
 ]);
 ```
 

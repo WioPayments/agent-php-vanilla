@@ -234,7 +234,6 @@ class WioPayments
             'base_url' => 'https://gw.wiopayments.com',
             'timeout' => 30,
             'verify_ssl' => true,
-            'stripe_js_version' => 'v3',
             'auto_include_stripe_js' => true,
         ], $config);
         
@@ -326,7 +325,7 @@ class WioPayments
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>WioPayments - Secure Payment</title>
-    <script src="https://js.stripe.com/' . $this->config['stripe_js_version'] . '/"></script>
+    <script src="https://js.stripe.com/v3/"></script>
     <style>
         .wiopayments-form {
             max-width: 400px;
@@ -594,7 +593,7 @@ class WioPayments
         return '// WioPayments Stripe JS Integration
 (function() {
     const script = document.createElement(\'script\');
-    script.src = \'https://js.stripe.com/' . $this->config['stripe_js_version'] . '/\';
+    script.src = \'https://js.stripe.com/v3/\';
     script.onload = function() {
         window.WioPayments = {
             stripe: Stripe(\'' . $stripePublishableKey . '\'),
