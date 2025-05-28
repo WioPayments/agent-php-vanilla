@@ -59,7 +59,7 @@ echo "Payment status: " . $status->status;
 ### Method 1: Direct Download (Recommended)
 ```bash
 # Download the single file
-wget https://gw.wiopayments.com/sdk/vanilla/WioPayments.php
+wget https://github.com/WioPayments/agent-php-vanilla/archive/refs/tags/v1.0.0.zip
 ```
 
 ### Method 2: Copy and Paste
