@@ -17,7 +17,7 @@ define('WIOPAYMENTS_TEST_API_KEY', 'wio_KTXPsDbGOBDCjQGA5axcIR0JJy2E9Pkj');
 define('WIOPAYMENTS_TEST_BASE_URL', 'https://gw.wiopayments.com');
 
 // Helper functions for tests
-function createTestPaymentData($overrides = [])
+function createTestPaymentData(array $overrides = []): array
 {
     return array_merge([
         'amount' => 50.00,
@@ -31,7 +31,7 @@ function createTestPaymentData($overrides = [])
     ], $overrides);
 }
 
-function createTestClient($config = [])
+function createTestClient(array $config = []): WioPayments
 {
     return new WioPayments(WIOPAYMENTS_TEST_API_KEY, array_merge([
         'base_url' => WIOPAYMENTS_TEST_BASE_URL,

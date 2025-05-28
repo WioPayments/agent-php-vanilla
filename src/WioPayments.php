@@ -16,7 +16,7 @@ if (!class_exists('WioPaymentsException')) {
      */
     class WioPaymentsException extends Exception
     {
-        public function __construct($message = "", $code = 0, $previous = null)
+        public function __construct(string $message = "", int $code = 0, ?Throwable $previous = null)
         {
             parent::__construct($message, $code, $previous);
         }
@@ -29,11 +29,11 @@ if (!class_exists('WioPaymentsHttpClient')) {
      */
     class WioPaymentsHttpClient
     {
-        private $baseUrl;
-        private $timeout;
-        private $verifySsl;
+        private string $baseUrl;
+        private int $timeout;
+        private bool $verifySsl;
 
-        public function __construct($config)
+        public function __construct(array $config)
         {
             $this->baseUrl = rtrim($config['base_url'], '/');
             $this->timeout = $config['timeout'] ?? 30;
@@ -43,7 +43,7 @@ if (!class_exists('WioPaymentsHttpClient')) {
         /**
          * Make GET request
          */
-        public function get($endpoint, $options = [])
+        public function get(string $endpoint, array $options = []): array
         {
             return $this->request('GET', $endpoint, $options);
         }
@@ -51,7 +51,7 @@ if (!class_exists('WioPaymentsHttpClient')) {
         /**
          * Make POST request
          */
-        public function post($endpoint, $options = [])
+        public function post(string $endpoint, array $options = []): array
         {
             return $this->request('POST', $endpoint, $options);
         }
@@ -59,7 +59,7 @@ if (!class_exists('WioPaymentsHttpClient')) {
         /**
          * Make PUT request
          */
-        public function put($endpoint, $options = [])
+        public function put(string $endpoint, array $options = []): array
         {
             return $this->request('PUT', $endpoint, $options);
         }
@@ -67,7 +67,7 @@ if (!class_exists('WioPaymentsHttpClient')) {
         /**
          * Make DELETE request
          */
-        public function delete($endpoint, $options = [])
+        public function delete(string $endpoint, array $options = []): array
         {
             return $this->request('DELETE', $endpoint, $options);
         }
@@ -75,7 +75,7 @@ if (!class_exists('WioPaymentsHttpClient')) {
         /**
          * Execute HTTP request using cURL
          */
-        private function request($method, $endpoint, $options = [])
+        private function request(string $method, string $endpoint, array $options = []): array
         {
             $url = $this->baseUrl . $endpoint;
             $ch = curl_init();
@@ -123,7 +123,7 @@ if (!class_exists('WioPaymentsHttpClient')) {
         /**
          * Handle HTTP response
          */
-        private function handleResponse($response, $httpCode)
+        private function handleResponse(string $response, int $httpCode): array
         {
             if ($httpCode < 200 || $httpCode >= 300) {
                 throw new WioPaymentsException("HTTP {$httpCode}: {$response}", $httpCode);
@@ -151,17 +151,17 @@ if (!class_exists('WioPaymentsPayment')) {
      */
     class WioPaymentsPayment
     {
-        public $id;
-        public $amount;
-        public $currency;
-        public $status;
-        public $order_id;
-        public $client_secret;
-        public $customer_name;
-        public $customer_email;
-        public $created_at;
+        public ?string $id;
+        public ?float $amount;
+        public ?string $currency;
+        public ?string $status;
+        public ?string $order_id;
+        public ?string $client_secret;
+        public ?string $customer_name;
+        public ?string $customer_email;
+        public ?string $created_at;
 
-        public static function fromArray($data)
+        public static function fromArray(array $data): self
         {
             $payment = new self();
             $payment->id = $data['id'] ?? null;
@@ -185,14 +185,14 @@ if (!class_exists('WioPaymentsPaymentStatus')) {
      */
     class WioPaymentsPaymentStatus
     {
-        public $id;
-        public $status;
-        public $amount;
-        public $currency;
-        public $order_id;
-        public $updated_at;
+        public ?string $id;
+        public ?string $status;
+        public ?float $amount;
+        public ?string $currency;
+        public ?string $order_id;
+        public ?string $updated_at;
 
-        public static function fromArray($data)
+        public static function fromArray(array $data): self
         {
             $status = new self();
             $status->id = $data['id'] ?? null;
@@ -216,10 +216,10 @@ if (!class_exists('WioPaymentsPaymentStatus')) {
  */
 class WioPayments
 {
-    private $apiKey;
-    private $baseUrl;
-    private $httpClient;
-    private $config;
+    private string $apiKey;
+    private string $baseUrl;
+    private WioPaymentsHttpClient $httpClient;
+    private array $config;
 
     /**
      * Initialize WioPayments client
@@ -227,7 +227,7 @@ class WioPayments
      * @param string $apiKey Site API key from WioPayments dashboard
      * @param array $config Additional configuration options
      */
-    public function __construct($apiKey, $config = [])
+    public function __construct(string $apiKey, array $config = [])
     {
         $this->apiKey = $apiKey;
         $this->config = array_merge([
@@ -248,7 +248,7 @@ class WioPayments
      * @return WioPaymentsPayment
      * @throws WioPaymentsException
      */
-    public function createPayment($paymentData)
+    public function createPayment(array $paymentData): WioPaymentsPayment
     {
         $this->validatePaymentData($paymentData);
 
@@ -271,7 +271,7 @@ class WioPayments
      * @return WioPaymentsPaymentStatus
      * @throws WioPaymentsException
      */
-    public function getPaymentStatus($paymentId)
+    public function getPaymentStatus(string $paymentId): WioPaymentsPaymentStatus
     {
         $response = $this->httpClient->get("/api/v1/payment/{$paymentId}/status", [
             'headers' => [
@@ -291,7 +291,7 @@ class WioPayments
      * @return string HTML form with integrated Stripe JS
      * @throws WioPaymentsException
      */
-    public function renderPaymentForm($paymentData, $options = [])
+    public function renderPaymentForm(array $paymentData, array $options = []): string
     {
         // Create payment intent first
         $payment = $this->createPayment($paymentData);
@@ -313,7 +313,7 @@ class WioPayments
     /**
      * Generate payment form HTML with Stripe JS integration
      */
-    private function generatePaymentFormHtml($payment, $options)
+    private function generatePaymentFormHtml(WioPaymentsPayment $payment, array $options): string
     {
         $stripePublishableKey = $this->getStripePublishableKey();
         $amount = number_format($payment->amount, 2);
@@ -468,7 +468,7 @@ class WioPayments
      * @return array Session details with payment URL
      * @throws WioPaymentsException
      */
-    public function createHostedPaymentSession($sessionData)
+    public function createHostedPaymentSession(array $sessionData): array
     {
         $this->validateHostedSessionData($sessionData);
 
@@ -491,7 +491,7 @@ class WioPayments
      * @return array Session status information
      * @throws WioPaymentsException
      */
-    public function getHostedSessionStatus($sessionId)
+    public function getHostedSessionStatus(string $sessionId): array
     {
         $response = $this->httpClient->get("/api/v1/hosted/sessions/{$sessionId}/status", [
             'headers' => [
@@ -510,7 +510,7 @@ class WioPayments
      * @return string Direct payment URL for redirection
      * @throws WioPaymentsException
      */
-    public function createHostedPaymentUrl($sessionData)
+    public function createHostedPaymentUrl(array $sessionData): string
     {
         $session = $this->createHostedPaymentSession($sessionData);
         return $session['payment_url'];
@@ -523,7 +523,7 @@ class WioPayments
      * @return array Payment link details including URL and metadata
      * @throws WioPaymentsException
      */
-    public function createPaymentLink($linkData)
+    public function createPaymentLink(array $linkData): array
     {
         $this->validatePaymentLinkData($linkData);
 
@@ -546,7 +546,7 @@ class WioPayments
      * @return array Payment link information
      * @throws WioPaymentsException
      */
-    public function getPaymentLink($linkId)
+    public function getPaymentLink(string $linkId): array
     {
         $response = $this->httpClient->get("/api/v1/payment-links/{$linkId}", [
             'headers' => [
@@ -565,7 +565,7 @@ class WioPayments
      * @return array List of payment links
      * @throws WioPaymentsException
      */
-    public function listPaymentLinks($filters = [])
+    public function listPaymentLinks(array $filters = []): array
     {
         $queryParams = http_build_query($filters);
         $url = '/api/v1/payment-links' . ($queryParams ? '?' . $queryParams : '');
@@ -586,7 +586,7 @@ class WioPayments
      * @param string $paymentId
      * @return string JavaScript code to include in existing pages
      */
-    public function generatePaymentScript($paymentId)
+    public function generatePaymentScript(string $paymentId): string
     {
         $stripePublishableKey = $this->getStripePublishableKey();
         
@@ -636,7 +636,7 @@ class WioPayments
     /**
      * Get Stripe publishable key from WioPayments API
      */
-    private function getStripePublishableKey()
+    private function getStripePublishableKey(): string
     {
         // In production, this would fetch the publishable key from WioPayments API
         // For now, return the test key
@@ -646,7 +646,7 @@ class WioPayments
     /**
      * Validate payment data
      */
-    private function validatePaymentData($data)
+    private function validatePaymentData(array $data): void
     {
         $required = ['amount', 'currency', 'order_id'];
         
@@ -668,7 +668,7 @@ class WioPayments
     /**
      * Validate hosted session data
      */
-    private function validateHostedSessionData($data)
+    private function validateHostedSessionData(array $data): void
     {
         $required = ['amount', 'currency', 'order_id', 'success_url', 'cancel_url'];
         
@@ -698,7 +698,7 @@ class WioPayments
     /**
      * Validate payment link data
      */
-    private function validatePaymentLinkData($data)
+    private function validatePaymentLinkData(array $data): void
     {
         $required = ['amount', 'currency', 'description'];
         

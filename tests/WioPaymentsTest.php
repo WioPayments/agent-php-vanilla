@@ -4,19 +4,19 @@ use PHPUnit\Framework\TestCase;
 
 class WioPaymentsTest extends TestCase
 {
-    private $client;
+    private WioPayments $client;
 
     protected function setUp(): void
     {
         $this->client = createTestClient();
     }
 
-    public function testClientInstantiation()
+    public function testClientInstantiation(): void
     {
         $this->assertInstanceOf(WioPayments::class, $this->client);
     }
 
-    public function testCreatePayment()
+    public function testCreatePayment(): void
     {
         $paymentData = createTestPaymentData();
         
@@ -25,7 +25,7 @@ class WioPaymentsTest extends TestCase
         $payment = $this->client->createPayment($paymentData);
     }
 
-    public function testValidatePaymentData()
+    public function testValidatePaymentData(): void
     {
         // Test missing required fields
         $this->expectException(WioPaymentsException::class);
@@ -37,7 +37,7 @@ class WioPaymentsTest extends TestCase
         ]);
     }
 
-    public function testInvalidAmount()
+    public function testInvalidAmount(): void
     {
         $this->expectException(WioPaymentsException::class);
         $this->expectExceptionMessage('Amount must be a positive number');
@@ -49,7 +49,7 @@ class WioPaymentsTest extends TestCase
         ]);
     }
 
-    public function testInvalidCurrency()
+    public function testInvalidCurrency(): void
     {
         $this->expectException(WioPaymentsException::class);
         $this->expectExceptionMessage('Unsupported currency');
@@ -61,34 +61,25 @@ class WioPaymentsTest extends TestCase
         ]);
     }
 
-    public function testRenderPaymentForm()
+    public function testRenderPaymentForm(): void
     {
         $paymentData = createTestPaymentData();
-        
-        // Mock the createPayment method to avoid API call
-        $mockPayment = new WioPaymentsPayment();
-        $mockPayment->id = 'payment_test_123';
-        $mockPayment->amount = 50.00;
-        $mockPayment->currency = 'USD';
-        $mockPayment->client_secret = 'pi_test_client_secret';
-        $mockPayment->customer_name = 'Test Customer';
-        $mockPayment->customer_email = 'test@example.com';
         
         // This would normally call the API, so we'll just test the structure
         $this->expectException(WioPaymentsException::class);
         $html = $this->client->renderPaymentForm($paymentData);
     }
 
-    public function testGeneratePaymentScript()
+    public function testGeneratePaymentScript(): void
     {
         $script = $this->client->generatePaymentScript('payment_test_123');
         
-        $this->assertStringContains('WioPayments', $script);
-        $this->assertStringContains('stripe.com', $script);
-        $this->assertStringContains('payment_test_123', $script);
+        $this->assertStringContainsString('WioPayments', $script);
+        $this->assertStringContainsString('stripe.com', $script);
+        $this->assertStringContainsString('payment_test_123', $script);
     }
 
-    public function testHostedSessionValidation()
+    public function testHostedSessionValidation(): void
     {
         $this->expectException(WioPaymentsException::class);
         $this->expectExceptionMessage('Missing required field: success_url');
@@ -101,7 +92,7 @@ class WioPaymentsTest extends TestCase
         ]);
     }
 
-    public function testPaymentLinkValidation()
+    public function testPaymentLinkValidation(): void
     {
         $this->expectException(WioPaymentsException::class);
         $this->expectExceptionMessage('Missing required field: description');
