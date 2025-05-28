@@ -1,0 +1,15 @@
+parameters:
+    level: max
+    paths:
+        - src
+    
+    ignoreErrors:
+        # Allow dynamic properties in model classes
+        - '#Access to an undefined property WioPaymentsPayment::\$[a-zA-Z_]+#'
+        - '#Access to an undefined property WioPaymentsPaymentStatus::\$[a-zA-Z_]+#'
+        
+        # Allow array access on mixed types from JSON responses
+        - '#Cannot access offset [^)]+ on mixed#'
+        
+        # Allow echo/print in HTML generation methods
+        - '#Function [a-zA-Z_]+ should return string but return statement is missing#'

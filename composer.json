@@ -1,0 +1,67 @@
+{
+    "name": "wiopayments/php-sdk-vanilla",
+    "description": "WioPayments Gateway PHP SDK - Vanilla PHP Version (No Dependencies)",
+    "type": "library",
+    "license": "MIT",
+    "keywords": [
+        "payment",
+        "gateway",
+        "stripe",
+        "wiopayments",
+        "vanilla",
+        "php",
+        "sdk",
+        "no-dependencies"
+    ],
+    "homepage": "https://wiopayments.com",
+    "support": {
+        "issues": "https://github.com/WioPayments/agent-php-vanilla/issues",
+        "source": "https://github.com/WioPayments/agent-php-vanilla",
+        "docs": "https://docs.wiopayments.com"
+    },
+    "authors": [
+        {
+            "name": "WioPayments Team",
+            "email": "support@wiopayments.com",
+            "homepage": "https://wiopayments.com"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "ext-curl": "*",
+        "ext-json": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0|^10.0",
+        "phpstan/phpstan": "^1.0"
+    },
+    "autoload": {
+        "files": [
+            "src/WioPayments.php"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WioPayments\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "analyse": "phpstan analyse src --level=max",
+        "check": [
+            "@analyse",
+            "@test"
+        ]
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-main": "1.0-dev"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "preferred-install": "dist"
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

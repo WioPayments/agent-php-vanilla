@@ -1,0 +1,125 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        php-version: ['7.4', '8.0', '8.1', '8.2', '8.3']
+    
+    name: PHP ${{ matrix.php-version }}
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: curl, json
+        coverage: xdebug
+        tools: composer:v2
+    
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+    
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ matrix.php-version }}-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-${{ matrix.php-version }}-
+    
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+    
+    - name: Run PHPStan
+      run: composer run-script analyse
+    
+    - name: Run test suite
+      run: composer run-script test -- --coverage-text
+    
+    - name: Test direct inclusion (no Composer)
+      run: php -f examples/simple-payment.php
+
+  compatibility:
+    runs-on: ubuntu-latest
+    name: Vanilla PHP Compatibility Test
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup PHP 7.4 (Minimum Version)
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '7.4'
+        extensions: curl, json
+    
+    - name: Test direct file inclusion
+      run: |
+        php -r "
+        require_once 'src/WioPayments.php';
+        echo 'WioPayments class loaded successfully' . PHP_EOL;
+        \$client = new WioPayments('test_key');
+        echo 'WioPayments client instantiated successfully' . PHP_EOL;
+        "
+    
+    - name: Test syntax across PHP versions
+      run: |
+        for version in 7.4 8.0 8.1 8.2 8.3; do
+          echo "Testing PHP $version syntax..."
+          docker run --rm -v $PWD:/app php:$version-cli php -l /app/src/WioPayments.php
+        done
+
+  security:
+    runs-on: ubuntu-latest
+    name: Security Checks
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup PHP
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: '8.2'
+        tools: composer:v2
+    
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+    
+    - name: Run security audit
+      run: composer audit
+
+  package:
+    runs-on: ubuntu-latest
+    name: Package Distribution Test
+    needs: [test, compatibility]
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Create distribution package
+      run: |
+        mkdir -p dist
+        cp src/WioPayments.php dist/
+        cp LICENSE dist/
+        cp README.md dist/
+        cp -r examples dist/
+        tar -czf dist/wiopayments-php-vanilla.tar.gz -C dist .
+        zip -r dist/wiopayments-php-vanilla.zip dist/ -x "dist/*.tar.gz" "dist/*.zip"
+    
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: wiopayments-php-vanilla
+        path: dist/
+        retention-days: 30
